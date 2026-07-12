@@ -7,32 +7,50 @@ Aplikasi helpdesk tiket IT dengan RBAC (admin, teknisi, user), dibangun native P
 ```
 helpdesk/
 ├── app/
-│   ├── Controllers/     # Logika aplikasi (AuthController, AdminController, TicketController)
-│   ├── Models/          # Interaksi database (User, Role, Ticket)
-│   └── Views/           # Tampilan per role (auth, admin, teknisi, user)
+│   ├── Controllers/     # AdminController, AuthController, CategoryController,
+│   │                    # ReportController, TicketController
+│   ├── Models/          # Attachment, Category, Comment, Role, Ticket, User
+│   ├── Services/        # ExportService, MailService, PdfService, Validator
+│   └── Views/
+│       ├── admin/       # create_user.php, dashboard.php
+│       ├── auth/        # login.php, register.php
+│       ├── categories/  # create.php, edit.php, index.php
+│       ├── partials/    # flash.php
+│       └── tickets/     # create.php, edit.php, index.php, pdf.php, show.php
 ├── config/
-│   └── database.php     # Koneksi PDO ke MySQL
+│   ├── database.php     # Koneksi PDO ke MySQL
+│   └── mail.php         # Kredensial SMTP untuk PHPMailer
 ├── core/
 │   ├── Router.php       # Routing sederhana
 │   ├── Controller.php   # Base controller (view, redirect, cek role)
 │   └── Model.php        # Base model (koneksi db)
 ├── public/
-│   ├── index.php        # Entry point
-│   ├── css/, js/
-│   └── uploads/         # Lampiran tiket
+│   ├── index.php        # Entry point (document root diarahkan ke sini)
+│   ├── .htaccess
+│   └── uploads/         # Lampiran tiket (harus writable oleh web server)
 ├── routes/
 │   └── web.php          # Daftar route
-└── helpdesk_ddl.sql      # Skema database
+├── index.php             # Redirect shortcut ke /public/login (opsional, bukan entry point utama)
+└── helpdesk_db.sql       # Skema database
 ```
+
+> **Catatan:** tidak ada folder per-role (`teknisi/`, `user/`) di `Views` — role hanya menentukan hak akses lewat pengecekan role di controller, bukan folder tampilan terpisah. Halaman tiket (`tickets/`) dipakai bersama oleh semua role, dengan elemen yang tampil disesuaikan lewat kondisi di view (mis. tombol "Hapus" hanya untuk pemilik tiket atau admin).
 
 ## Setup
 
-1. Import `helpdesk_ddl.sql` ke MySQL.
+1. Import `helpdesk_db.sql` ke MySQL.
 2. Sesuaikan kredensial di `config/database.php`.
 3. Jalankan `composer install` di root folder untuk mengunduh PhpSpreadsheet, PHPMailer, dan Dompdf.
 4. Sesuaikan kredensial SMTP di `config/mail.php` untuk fitur notifikasi email.
 5. Arahkan document root ke folder `public/`.
 6. Buat user awal manual lewat seeder/insert langsung untuk akun admin pertama, selanjutnya perubahan role dilakukan lewat dashboard admin.
+
+## Services
+
+- **MailService** — wrapper PHPMailer, dipakai controller untuk kirim notifikasi email.
+- **PdfService** — wrapper Dompdf, dipakai `TicketController` untuk generate PDF detail tiket.
+- **ExportService** — wrapper PhpSpreadsheet, dipakai `ReportController` untuk export laporan `.xlsx`.
+- **Validator** — helper validasi input form (dipakai di berbagai controller sebelum insert/update ke model).
 
 ## Library Eksternal
 
